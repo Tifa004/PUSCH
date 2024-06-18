@@ -1,4 +1,6 @@
 module SC_TOP( 
+
+    input wire CLK_TOP_new , 
     input wire CLK_TOP , 
     input wire RST_TOP , 
     input wire EN_TOP , 
@@ -18,6 +20,7 @@ module SC_TOP(
 
 Gold_Gen PRGEN(
     .CLK_PR(CLK_TOP) ,
+    .CLK_PR_new(CLK_TOP_new) ,
     .RST_PR(RST_TOP) ,
     .EN_PR(EN_TOP) , 
     .Config(Config_TOP),
