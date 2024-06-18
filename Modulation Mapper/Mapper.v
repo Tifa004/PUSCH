@@ -106,7 +106,7 @@ always@(*) begin
 
     if(!RST_Mod)
         PINGPONG_SWITCH = 0 ;  
-    else if (MOD_DONE && Valid_Mod_IN) 
+    else if (MOD_DONE) 
         PINGPONG_SWITCH =1 ;     
     else 
         PINGPONG_SWITCH = 0 ; 
