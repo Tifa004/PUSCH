@@ -1,4 +1,6 @@
-module Gold_Gen( 
+module Gold_Gen(
+
+    input wire CLK_PR_new , 
     input wire CLK_PR , 
     input wire RST_PR , 
     input wire EN_PR , 
@@ -25,7 +27,7 @@ module Gold_Gen(
  wire Feedback_X1 ,Feedback_X2 ;
 
 
-always @(posedge CLK_PR or negedge RST_PR)  begin
+always @(posedge CLK_PR_new or negedge RST_PR)  begin
     if(! RST_PR) begin 
 
         X1 <= 31'b0 ; 
@@ -65,8 +67,10 @@ always @(posedge CLK_PR or negedge RST_PR)  begin
             Shift_end <= 1 ; 
             GOLD_VALID <= 1 ; 
         end       
-    end    
-        else if (OUT_Enable && PR_BUSY_IN) begin
+    end
+end 
+    always @ (posedge CLK_PR or negedge RST_PR) begin     
+         if (OUT_Enable && PR_BUSY_IN) begin
                    
                 X1 <= X1 >> 1 ;
                 X1[Seq_Len-1] <= Feedback_X1 ;
@@ -78,9 +82,9 @@ always @(posedge CLK_PR or negedge RST_PR)  begin
 
         //end
         end
-        else begin 
-                GOLD_VALID <= 0 ;  
-        end    
+        //else begin 
+                //GOLD_VALID <= 0 ;  
+        //end    
 end
 
 
