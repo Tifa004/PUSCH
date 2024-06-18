@@ -111,9 +111,12 @@ module interleaver (
 
                         // Increment read counter
                         read_counter <= read_counter + 1;
+                       
                     end 
                 else 
                     begin
+                         if (read_counter == E)
+                            flag <= 0;
                         // Reset read pointer if all data has been read
                         read_addr_row <= 0;
                         read_addr_col <= 0;
