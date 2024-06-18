@@ -91,10 +91,12 @@ always@(posedge CLK_Mod) begin
 
           end
    end 
-   else if (! Valid_Mod_IN  && !Valid_reg) begin 
+   else if ( (!Valid_Mod_IN) && (Valid_reg) ) begin 
                 PingPong_Counter <= 0 ; 
-                MOD_DONE <= 0 ;  
+                MOD_DONE <= 1 ;  
    end
+   else
+        MOD_DONE <= 0;
 end
 
 always@(*) begin 
