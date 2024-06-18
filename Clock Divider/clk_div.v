@@ -1,8 +1,6 @@
-module clk_div (
+module clk_div #( parameter div = 16)(
 	input clk,    // Clock
-	input enable, // Clock Enable
 	input rst_n,  // Asynchronous reset active low
-	input [7:0] div,
 	output reg clk_new 
 	
 );
@@ -41,7 +39,7 @@ end
 end
 
 always @* begin 
-	clk_div_en=enable&&(div!=0)&&(div!=1);
+	clk_div_en=(div!=0)&&(div!=1);
 	odd=div[0];
     	half=div>>1;
     	clk_new=clk_div_en?clk_div:clk;
