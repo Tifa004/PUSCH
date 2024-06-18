@@ -96,7 +96,10 @@ always@(posedge CLK_Mod) begin
                 MOD_DONE <= 1 ;  
    end
    else
-        MOD_DONE <= 0;
+        begin
+            MOD_DONE <= 0;
+            Last_addr <= Last_addr_reg;
+        end    
 end
 
 always@(*) begin 
@@ -216,7 +219,7 @@ end
 always@(posedge CLK_Mod  or negedge RST_Mod) begin 
     if(!RST_Mod)
         Last_addr_reg <= 0 ; 
-    else if(MOD_DONE)
+    else if((!Valid_Mod_IN) && (Valid_reg))
         Last_addr_reg <= Wr_addr ; 
 
  
