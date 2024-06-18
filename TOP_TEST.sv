@@ -2,9 +2,13 @@ module PUSCH_Top_tb;
 
   // Parameters
   parameter WIDTH_IFFT = 26;
-  parameter period = 10;
+  parameter period_new = 32;
+  parameter period = 16*period_new;
+  
+
   // Inputs
   reg clk;
+  reg clk_new;
   reg reset;
   reg enable;
   reg Data_in;
@@ -35,6 +39,7 @@ module PUSCH_Top_tb;
   // Instantiate the Unit Under Test (UUT)
   PUSCH_Top #(WIDTH_IFFT) Dut (
       .clk(clk),
+      .clk_new(clk_new),
       .reset(reset),
       .enable(enable),
       .Data_in(Data_in),
@@ -60,23 +65,22 @@ module PUSCH_Top_tb;
   );
 
   always #(period/2) clk = ~clk;
+  always #(period_new/2) clk_new = ~clk_new;
 
   initial begin
     // Initialize Inputs
     clk = 0;
+    clk_new = 0;
     reset = 0;
     enable = 0;
     Data_in = 0;
-
-    /*base_graph = 0;
-    rv_number = 0;
-    process_number = 0;
-    available_coded_bits = 0;
-    modulation_order = 0;
-    N_Rapid = 0;
-    N_Rnti = 0;
-    N_cell_ID = 0;
+    modulation_order = 3'd2;
+    N_Rapid = 15;
+    N_Rnti = 50000;
+    N_cell_ID = 900;
     Config = 0;
+
+    /*
     N_slot_frame = 0;
     N_rb = 0;
     En_hopping = 0;
@@ -85,7 +89,8 @@ module PUSCH_Top_tb;
     Sym_Start_REM = 0;
     Sym_End_REM = 0;
 	*/
-    // Wait 100 ns for global reset to finish
+
+    // CRC 
     #(period);
     reset = 1;
     enable = 1;
@@ -94,7 +99,19 @@ module PUSCH_Top_tb;
     #(period);
 	enable = 0;
 
-	#(period*100);
+	#(period*18);
+	// HARQ
+	base_graph = 2; 
+	rv_number = 1;
+    process_number = 1;
+    available_coded_bits = 144;
+
+    #(period*81);
+    // Scrambler
+    
+    
+	
+	#(period*1000);
 
     /*
     // Add stimulus here
