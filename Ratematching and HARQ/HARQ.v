@@ -51,7 +51,7 @@ module RateMatching_and_HARQ (
     reg [9:0] cycle_repeat;        // reg to determine number of repeated cycles in the repetation case
     
     reg enable_read_flag;
-    always @(posedge clk or posedge rst) 
+    always @(posedge clk or negedge rst) 
     begin
         if (!rst)
             begin
