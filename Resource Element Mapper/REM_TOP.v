@@ -5,34 +5,28 @@ module REM_TOP#(
     parameter FFT_Len = 18 , 
     parameter DMRS_Len = 9 
 )(
-    // system signals
     input wire CLK_RE_TOP , 
     input wire RST_RE_TOP , 
-    input wire EN_RE_TOP ,
 
-    // base station inputs
     input wire [10:0] N_sc_TOP , // subcarrier starting point
     input wire [6:0] N_rb_TOP ,     // no. of RBs allocated
     input wire unsigned [3:0] Sym_Start_TOP ,
     input wire unsigned [3:0] Sym_End_TOP ,  
 
-    // DMRS inputs
+
     input wire signed [DMRS_Len-1:0]Dmrs_I_TOP , 
     input wire signed [DMRS_Len-1:0]Dmrs_Q_TOP ,
     input wire DMRS_Valid_In_TOP ,
     input wire DMRS_Done_TOP ,
 
-    // FFT inputs
     input wire signed [FFT_Len-1:0] FFT_I_TOP , 
     input wire signed [FFT_Len-1:0] FFT_Q_TOP , 
     input wire FFT_Valid_In_TOP ,
     input wire FFT_Done_TOP , // flag reports that fft finished writing in memory & all symbols is valid
     input wire [10:0] FFT_addr_TOP , // mn mostafa direct
     
-    // outputs
-    output wire [9:0] DMRS_addr_TOP , // dmrs memory ely abli 
-
-    
+ 
+    output wire [9:0] DMRS_addr_TOP , // dmrs memory ely abli     
     output wire [DATA_WIDTH-1:0] PingPongOUT_I_TOP , 
     output wire [DATA_WIDTH-1:0] PingPongOUT_Q_TOP , 
 
@@ -42,20 +36,18 @@ module REM_TOP#(
 
 ); 
 
-wire signed [FFT_Len-1:0] RE_Real_TOP;
-wire signed [FFT_Len-1:0] RE_Imj_TOP; 
-wire RE_Valid_OUT_TOP;
-wire [10:0] Wr_addr_TOP; 
-wire Sym_Done_TOP;
-wire RE_Done_TOP; 
-wire write_enable_TOP; 
-
+wire write_enable_TOP ; 
+wire signed [FFT_Len-1:0] RE_Real_TOP ; 
+wire signed [FFT_Len-1:0] RE_Imj_TOP ; 
+wire RE_Valid_OUT_TOP ;
+wire [10:0] Wr_addr_TOP ;
+wire Sym_Done_TOP ; 
+wire RE_Done_TOP ;
 
 REmapper_new DDD0(
 
 .CLK_RE(CLK_RE_TOP) ,
 .RST_RE(RST_RE_TOP) , 
-.EN_RE(EN_RE_TOP) , 
 .N_sc(N_sc_TOP) , 
 .N_rb(N_rb_TOP) , 
 .Sym_Start(Sym_Start_TOP) , 
