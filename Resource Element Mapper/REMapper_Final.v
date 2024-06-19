@@ -60,7 +60,7 @@ always @(*) begin
   case(current_state)
 
     IDLE: begin 
-        if( (DMRS_Valid_In || DMRS_Done) && Symbol_now == Sym_Start) begin 
+        if( (DMRS_Done) && Symbol_now == Sym_Start) begin 
             next_state =Map_DMRS;
         end 
         else if ((FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End)) begin
@@ -72,13 +72,12 @@ always @(*) begin
     end     
 
     Map_DMRS: begin 
-        if ( (   DMRS_Valid_In|| DMRS_Done)) begin
             if (Counter >= N_sc && Counter < Last_indx) begin
                 next_state = Map_DMRS; 
             end else begin
                 next_state = WAIT_FFT; 
             end
-        end else begin
+         else begin
             next_state = WAIT_FFT; 
         end
     end    
