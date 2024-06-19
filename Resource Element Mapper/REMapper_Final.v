@@ -72,7 +72,7 @@ always @(*) begin
     end     
 
     Map_DMRS: begin 
-            if (Counter >= N_sc && Counter < Last_indx) begin
+        if (Counter >= N_sc && Counter < Last_indx) begin
                 next_state = Map_DMRS; 
             end else begin
                 next_state = WAIT_FFT; 
@@ -184,7 +184,7 @@ end
 always @(posedge CLK_RE or negedge RST_RE ) begin 
    if(!RST_RE)
             DMRS_addr <= 0 ;
-   else if((current_state == Map_DMRS))
+   else if((current_state != Map_DMRS))
             DMRS_addr <= 0 ; 
    else if((current_state == Map_DMRS) && (Counter[0] == N_sc[0]) )     
                 DMRS_addr <= DMRS_addr + 1 ;                     
