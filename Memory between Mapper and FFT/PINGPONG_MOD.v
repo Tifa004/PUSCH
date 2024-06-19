@@ -76,6 +76,10 @@ module PingPongMem_MOD #(
           data_out <= 0 ; 
           Last_indx <= 1 ;   
      end
+    else if (MOD_DONE) begin 
+            data_out <= 'b0 ;
+            Last_indx <= 1 ;  
+    end    
      else if (flag) begin
             if (use_ping) begin
                 data_out <= pong[Last_indx-1];
