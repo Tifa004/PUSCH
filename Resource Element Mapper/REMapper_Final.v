@@ -1,7 +1,6 @@
 module REmapper_new #(parameter FFT_Len =18  ,parameter DMRS_Len = 9 )(
     input wire CLK_RE , 
     input wire RST_RE , 
-    input wire EN_RE ,
 
     input wire [10:0] N_sc , // subcarrier starting point
     input wire [6:0] N_rb ,     // no. of RBs allocated
@@ -50,18 +49,9 @@ reg EN_Counter ;
 
 always @(posedge CLK_RE or negedge RST_RE) begin 
     if (!RST_RE) begin
-        //DMRS_addr <= 0 ; 
-        //RE_Valid_OUT <= 0 ;
-        //RE_Real <= 12'b0 ; 
-       // RE_Imj <= 12'b0 ;
-       // Wr_addr <= 'b0 ;
-        //Sym_Done <=0 ;
-       // Counter <= 0 ;
-       // RE_Done <= 0 ;
-        //Symbol_now <= 0; 
         current_state <= IDLE ; 
     end
-    else if (EN_RE)
+    else 
         current_state <= next_state ;     
 end 
 
@@ -70,10 +60,10 @@ always @(*) begin
   case(current_state)
 
     IDLE: begin 
-        if(EN_RE && (DMRS_Valid_In || DMRS_Done) && Symbol_now == Sym_Start) begin 
+        if( (DMRS_Valid_In || DMRS_Done) && Symbol_now == Sym_Start) begin 
             next_state =Map_DMRS;
         end 
-        else if (EN_RE && (FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End)) begin
+        else if ((FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End)) begin
             next_state = Map_FFT; 
         end 
         else begin
@@ -82,7 +72,7 @@ always @(*) begin
     end     
 
     Map_DMRS: begin 
-        if (EN_RE && (DMRS_Valid_In || DMRS_Done)) begin
+        if ( (   DMRS_Valid_In|| DMRS_Done)) begin
             if (Counter >= N_sc && Counter < Last_indx) begin
                 next_state = Map_DMRS; 
             end else begin
@@ -93,14 +83,14 @@ always @(*) begin
         end
     end    
     WAIT_FFT : begin 
-      if (EN_RE && (FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End)) begin
+      if ( (FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End)) begin
             next_state = Map_FFT; 
       end else 
             next_state = WAIT_FFT ; 
     end  
 
     Map_FFT: begin 
-        if (EN_RE && (FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End) && Counter >= N_sc && Counter <= Last_indx) begin    
+        if ( (FFT_Valid_In || FFT_Done) && (Symbol_now > Sym_Start && Symbol_now <= Sym_End) && Counter >= N_sc && Counter <= Last_indx) begin    
                 next_state = Map_FFT; 
             end else if (Symbol_now < Sym_End+1) begin
                 next_state = WAIT_FFT;  
