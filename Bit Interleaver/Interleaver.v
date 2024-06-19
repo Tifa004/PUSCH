@@ -29,7 +29,7 @@ module interleaver (
     reg [17:0] NUM_COLS;
     reg flag;                        // flag to enable the reading process
 
-    always @(posedge clk or posedge reset) 
+    always @(posedge clk or negedge reset) 
     begin
         if (!reset) 
             begin
