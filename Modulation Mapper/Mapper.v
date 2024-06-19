@@ -81,24 +81,25 @@ always@(posedge CLK_Mod) begin
           end else if ((PingPong_Counter == Order_Mod+2) && Mod_Valid_OUT) begin 
                 PingPong_Counter <= 3 ; 
                 MOD_DONE <= 0 ;  
-                Last_addr <= Last_addr_reg ;
+                Last_addr <= 0 ;
 
           end
           else begin  
                 PingPong_Counter <= PingPong_Counter +1 ; 
                 MOD_DONE <= 0 ;   
-                Last_addr <= Last_addr_reg ;
+                Last_addr <= 0 ;
 
           end
    end 
    else if ( (!Valid_Mod_IN) && (Valid_reg) ) begin 
                 PingPong_Counter <= 0 ; 
                 MOD_DONE <= 1 ;  
+                Last_addr <= Wr_addr ; 
    end
    else
         begin
             MOD_DONE <= 0;
-            Last_addr <= Last_addr_reg;
+            Last_addr <= 0;
         end    
 end
 
@@ -216,14 +217,6 @@ always@(posedge CLK_Mod  or negedge RST_Mod) begin
         write_enable <= 0 ;    
 end
 
-always@(posedge CLK_Mod  or negedge RST_Mod) begin 
-    if(!RST_Mod)
-        Last_addr_reg <= 0 ; 
-    else if((!Valid_Mod_IN) && (Valid_reg))
-        Last_addr_reg <= Wr_addr ; 
-
- 
-end
 always@(posedge CLK_Mod  or negedge RST_Mod) begin 
     if(!RST_Mod)
         Valid_reg <= 0 ; 
