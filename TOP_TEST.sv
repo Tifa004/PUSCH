@@ -8,7 +8,6 @@ module PUSCH_Top_tb;
 
   // Inputs
   reg clk;
-  reg clk_new;
   reg reset;
   reg enable;
   reg Data_in;
@@ -36,10 +35,10 @@ module PUSCH_Top_tb;
 
 
 
-  // Instantiate the Unit Under Test (UUT)
+  // Instantiate the Design Under Test (DUT)
   PUSCH_Top #(WIDTH_IFFT) Dut (
       .clk(clk),
-      .clk_new(clk_new),
+      //.clk_new(clk_new),
       .reset(reset),
       .enable(enable),
       .Data_in(Data_in),
@@ -64,13 +63,12 @@ module PUSCH_Top_tb;
       .Data_valid(Data_valid)
   );
 
-  always #(period/2) clk = ~clk;
-  always #(period_new/2) clk_new = ~clk_new;
+  always #(period_new/2) clk = ~clk;
+  //always #(period_new/2) clk_new = ~clk_new;
 
   initial begin
     // Initialize Inputs
     clk = 0;
-    clk_new = 0;
     reset = 0;
     enable = 0;
     Data_in = 0;
@@ -79,16 +77,14 @@ module PUSCH_Top_tb;
     N_Rnti = 50000;
     N_cell_ID = 900;
     Config = 0;
-
-    /*
     N_slot_frame = 0;
-    N_rb = 0;
+    N_rb = 10;
     En_hopping = 0;
-    N_symbol = 0;
-    N_sc_start = 0;
-    Sym_Start_REM = 0;
-    Sym_End_REM = 0;
-	*/
+    N_symbol = 3;
+    N_sc_start = 193;
+    Sym_Start_REM = 1;
+    Sym_End_REM = 8;
+
 
     // CRC 
     #(period);
@@ -150,6 +146,7 @@ module PUSCH_Top_tb;
     #1000;
 
     */
+    //wait(Dut.FFT_Block.Finish);
     $stop;
   end
 
