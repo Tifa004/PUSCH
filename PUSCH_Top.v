@@ -1,7 +1,6 @@
 module PUSCH_Top #(parameter WIDTH_IFFT = 26)
     ( 
     input clk,
-    input clk_new,
     input reset,
     input enable,
 
@@ -74,7 +73,7 @@ parameter DATA_WIDTH = 36;
 
 
 // Clock divider parameters
-parameter clk_div_16 = 1, clk_div_6 = 4, clk_div_8 = 2;
+parameter clk_div_16 = 16, clk_div_6 = 3, clk_div_8 = 2;
 
 ////////////////// Wires connecting between each two blocks //////////////////
 // Between CRC and LDPC
@@ -121,9 +120,31 @@ wire Ping_VALID_Q;
 
 
 //////////////////////// Blocks Instantiations ////////////////////////
+// clock divider for scrambler
+clk_div #(.div(clk_div_16)) clk_div_scrambler_16 (
+    .clk(clk),       // Clock
+    .rst_n(reset),      // Asynchronous reset active low
+    .clk_new(clk_16)    // 16
+    );
+
+// clock divider for FFT
+clk_div #(.div(clk_div_6)) clk_div_FFT_6 (
+    .clk(clk),       // Clock
+    .rst_n(reset),      // Asynchronous reset active low
+    .clk_new(clk_6)     // 16/3 = 5.3333
+    );
+
+// clock divider for IFFT
+clk_div #(.div(clk_div_8)) clk_div_IFFT_8 (
+    .clk(clk),       // Clock
+    .rst_n(reset),      // Asynchronous reset active low
+    .clk_new(clk_8)     // 16/2 = 8
+    );
+
+
 // CRC
 CRC #(.SEED(SEED)) CRC_Block ( 
-   .CLK(clk) ,          
+   .CLK(clk_16) ,          
    .RST(reset) ,          
    .DATA(Data_in) ,         
    .ACTIVE(enable) ,       
@@ -135,7 +156,7 @@ CRC #(.SEED(SEED)) CRC_Block (
 
 // LDPC
 LDPC LDPC_Block (
-    .CLK(clk),
+    .CLK(clk_16),
     .RST(reset),
     .DATA(Data_in),
     .CRC_bits(Data_CRC_LDPC),
@@ -147,7 +168,7 @@ LDPC LDPC_Block (
 
 // Rate Matching & HARQ
 RateMatching_and_HARQ RateMatching_and_HARQ_Block (
-    .clk(clk),
+    .clk(clk_16),
     .rst(reset),
     .Active(LDPC_valid),
     .base_graph(base_graph),        // Base graph selection (1 or 2)
@@ -164,7 +185,7 @@ RateMatching_and_HARQ RateMatching_and_HARQ_Block (
 
 // Bit Interleaver
 interleaver interleaver_Block (
-    .clk(clk),
+    .clk(clk_16),
     .reset(reset),
     .Active(HARQ_valid),
     .E(available_coded_bits),
@@ -175,17 +196,10 @@ interleaver interleaver_Block (
     .data_not_repeated(data_not_repeated)
 );
 
-// clock divider for scrambler
-clk_div #(.div(clk_div_16)) clk_div_scrambler_16 (
-    .clk(clk_new),       // Clock
-    .rst_n(reset),      // Asynchronous reset active low
-    .clk_new(clk_16) 
-    );
-
 // Scrambler
 SC_TOP Scrambler_Block ( 
-    .CLK_TOP(clk) ,
-    .CLK_TOP_new(clk_16) , 
+    .CLK_TOP(clk_16) ,
+    .CLK_TOP_new(clk) , 
     .RST_TOP(reset) , 
     .EN_TOP(zeyad_enable) , 
     .Shift_TOP(zeyad_enable) , 
@@ -205,7 +219,7 @@ SC_TOP Scrambler_Block (
 // Modulation Mapper
 Mapper_TOP#(.LUT_WIDTH(LUT_WIDTH), .OUT_WIDTH(OUT_WIDTH)) Mapper_Block (  
     .Serial_IN(data_Scrambler_Modulator) , // ex
-    .CLK_Mod(clk) , 
+    .CLK_Mod(clk_16) , 
     .RST_Mod(reset) , 
     .Valid_Mod_IN(Scrambler_valid) , 
     .Order_Mod(modulation_order) ,
@@ -224,7 +238,8 @@ Mapper_TOP#(.LUT_WIDTH(LUT_WIDTH), .OUT_WIDTH(OUT_WIDTH)) Mapper_Block (
 
 // Real part Memory Between Mapper and FFT
 PingPongMem_MOD #(.MEM_DEPTH(MEM_DEPTH_FFT), .DATA_WIDTH(WIDTH_FFT)) Mod_FFT_Mem_r_Block (
-    .CLK(clk),
+    .CLK(clk_16),
+    .CLK_NEW(clk_6),
     .RST(reset),
 
     .data_in(Data_Mod_Mem_r),
@@ -240,7 +255,8 @@ PingPongMem_MOD #(.MEM_DEPTH(MEM_DEPTH_FFT), .DATA_WIDTH(WIDTH_FFT)) Mod_FFT_Mem
 
 // Imaginary part Memory Between Mapper and FFT
 PingPongMem_MOD #(.MEM_DEPTH(MEM_DEPTH_FFT), .DATA_WIDTH(WIDTH_FFT)) Mod_FFT_Mem_i_Block (
-    .CLK(clk),
+    .CLK(clk_16),
+    .CLK_NEW(clk_6),
     .RST(reset),
 
     .data_in(Data_Mod_Mem_i),
@@ -253,11 +269,11 @@ PingPongMem_MOD #(.MEM_DEPTH(MEM_DEPTH_FFT), .DATA_WIDTH(WIDTH_FFT)) Mod_FFT_Mem
     .data_out(Data_Mod_FFT_i)  // Output data
 );
 
-/*
+
 // FFT
 Top #(.WIDTH(WIDTH_FFT)) FFT_Block (
-    .clk(clk),
-    .rst(reset),
+    .clk(clk_6),
+    .rst(!reset),
     .di_re(Data_Mod_FFT_r),
     .di_im(Data_Mod_FFT_i),
     .Flag(Modulator_valid),
@@ -266,14 +282,14 @@ Top #(.WIDTH(WIDTH_FFT)) FFT_Block (
     .do_im(Data_FFT_REM_i),
     .do_en(FFT_valid),
     .address(Write_addr_FFT),
-    .last_address(Last_addr_Mod+1),
+    .last_address(Last_addr_Mod+1'b1),
     .Finish(FFT_done)
 );
 
 
 // Reference Signal
 TopDMRS #(.WIDTH(WIDTH_DMRS)) DMRS_Block (
-    .clk(clk),
+    .clk(clk_16),
     .reset(reset),
     .N_slot_frame(N_slot_frame),
     .N_cell_ID(N_cell_ID),
@@ -288,7 +304,7 @@ TopDMRS #(.WIDTH(WIDTH_DMRS)) DMRS_Block (
 
 // Memory Between DMRS and Resource element Mapper
 DMRS_Mem DMRS_Mem_Block (
-    .clk(clk),
+    .clk(clk_16),
     .reset(reset),
     .DMRS_valid(DMRS_valid),
     .read_ptr(DMRS_ptr),
@@ -304,7 +320,7 @@ REM_TOP #(.MEM_DEPTH(MEM_DEPTH_IFFT), .WRITE_ADDR_SHIFT(WRITE_ADDR_SHIFT),
     .DATA_WIDTH(WIDTH_IFFT), .FFT_Len(WIDTH_FFT), .DMRS_Len(WIDTH_DMRS)) REM_Block
 
    (
-    .CLK_RE_TOP(clk) , 
+    .CLK_RE_TOP(clk_6) , 
     .RST_RE_TOP(reset) , 
 
     .N_sc_TOP(N_sc_start) , // subcarrier starting point
@@ -338,17 +354,17 @@ REM_TOP #(.MEM_DEPTH(MEM_DEPTH_IFFT), .WRITE_ADDR_SHIFT(WRITE_ADDR_SHIFT),
 // IFFT and Cyclic Prefix
 IFFT_CP_TOP #(.WIDTH(WIDTH_IFFT)) IFFT_Block
 (
-    .clk(clk),
+    .clk(clk_8),
     .rst(reset),
-    .data_in1_r(Data_REM_IFFT_r),
-    .data_in1_i(Data_REM_IFFT_i),
+    .data_in_r(Data_REM_IFFT_r),
+    .data_in_i(Data_REM_IFFT_i),
     .VALID(Ping_VALID_I),
     
     .READy_out(Data_valid),
-    .data_out_r(Data_IFFT_CP_r),
-    .data_out_i(Data_IFFT_CP_i)
+    .data_out_r(Data_r),
+    .data_out_i(Data_i)
 );
 
 
-*/
+
 endmodule
