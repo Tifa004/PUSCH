@@ -66,10 +66,6 @@ module interleaver (
                                 // Wrap around to next row if end of current row
                                 write_addr_row <= write_addr_row + 1;
                                 write_addr_col <= 0;
-                                if (write_addr_row == NUM_ROWS -1)
-                                    flag <= 1;
-                                else
-                                    flag <= 0;
                             end 
                         else 
                             begin
@@ -79,6 +75,10 @@ module interleaver (
 
                         // Increment write counter
                         write_counter <= write_counter + 1;
+                        if (write_counter == E-1)
+                            flag <= 1;
+                        else
+                            flag <= 0;
                     end
                 // Reset write pointer if total data bits written exceeds total data bits
                 else
